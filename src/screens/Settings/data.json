@@ -1,0 +1,37 @@
+[
+  {
+    "id": 0,
+    "name": "Notifications",
+    "icon": "md-calendar",
+    "bg": "#ffc890",
+    "url": "Home"
+  },
+  {
+    "id": 1,
+    "name": "Invite Friends",
+    "icon": "md-people",
+    "bg": "#5985FF",
+    "url": ""
+  },
+  {
+    "id": 2,
+    "name": "Membership",
+    "icon": "ios-people",
+    "bg": "#ff6c6c",
+    "url": "Membership"
+  },
+  {
+    "id": 3,
+    "name": "Change Password",
+    "icon": "ios-key",
+    "bg": "#ffc890",
+    "url": "ChangePwd"
+  },
+  {
+    "id": 4,
+    "name": "Log out",
+    "icon": "ios-log-out",
+    "bg": "#c0c0c0",
+    "url": "Login"
+  }
+]

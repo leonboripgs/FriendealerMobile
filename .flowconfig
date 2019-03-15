@@ -1,0 +1,13 @@
+[ignore]
+.*/node_modules
+;Ignore native base
+.*/native-base/**
+
+[include]
+
+[libs]
+flow-typed
+[lints]
+
+[options]
+module.name_mapper='\(react-native\)' -> '<PROJECT_ROOT>/modulesStub.js'
