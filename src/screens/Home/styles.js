@@ -5,6 +5,11 @@ const commonColor = require("../../theme/variables/commonColor");
 const deviceWidth = Dimensions.get("window").width;
 
 export default {
+  headerIcon: {
+    resizeMode: "contain",
+    height: 30,
+    width: 30
+  },
   headerBtn: {
     alignSelf: "center",
     marginLeft: 10
