@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { Image, View, TouchableOpacity } from "react-native";
+import { Image, View, TouchableOpacity  } from "react-native";
 import { connect } from "react-redux";
 import StarRating from 'react-native-star-rating';
 import {width, height, totalSize} from 'react-native-dimension';
+import HtmlText from 'react-native-html-to-text';
 import {
   Container,
   Header,
@@ -174,10 +175,12 @@ class Profile extends Component {
           <View style={{borderBottomWidth: 1, width: width(85), marginLeft: width(3), marginBottom: 16}}>
           </View>
           <View style={styles.infoBlockView}>
-            {update_info === false &&
-              <Text style={styles.description_text}>
-                {profile.description}
-              </Text>}
+            {update_info === false && profile.description &&
+              <HtmlText style={styles.description_text} html={profile.description}></HtmlText>
+              // <Text style={styles.description_text}>
+              //   {profile.description}
+              // </Text>
+            }
             {update_info === true &&
               <Textarea rowSpan={15} bordered placeholder="Description"
                 style={{marginLeft: 16}}

@@ -13,6 +13,8 @@ import {
   Content
 } from "native-base";
 import styles from "./styles";
+import api from '../../ApiConfig.js';
+import socket from '../../SocketConfig.js';
 
 class ChatScreen extends Component {
   constructor(props) {
@@ -35,9 +37,28 @@ class ChatScreen extends Component {
 
   componentWillMount() {
     this._isMounted = true;
-    this.setState({
-      messages: require("./messages")
-    });
+    const navigation = this.props.navigation;
+    api.post('/chat/getChatByUserId', {eventId: navigation.state.params.eventId,
+      contactId: navigation.state.params.contactId,
+      userId: navigation.state.params.userId})
+      .then((res)=>{
+      var dialog = [];
+      res.data.doc.dialog.map((cursor)=>{
+        dialog.push({
+          _id: Math.round(Math.random() * 1000000),
+          text: cursor.message,
+          createdAt: cursor.time,
+          user: {
+            _id: (navigation.state.params.userId === cursor.who ? 1 : 2),
+            name: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactName),
+            avatar: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactAvatar),
+          }        
+        })
+      })
+      this.setState({
+        messages: dialog
+      })
+    })
   }
 
   componentWillUnmount() {
@@ -64,9 +85,31 @@ class ChatScreen extends Component {
   }
 
   onSend(messages = []) {
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, messages)
-    }));
+    const navigation = this.props.navigation;
+    const msg = {
+      'event_id' : navigation.state.params.eventId,
+      'contactId' : navigation.state.params.contactId,
+      'who'    : navigation.state.params.userId,
+      'message': messages[0].text,
+      'message_type' : 'text',
+      'time'   : new Date()
+    };
+
+    const request = api.post('/chat/sendMessage', {
+        message: msg
+    });
+
+    request.then(()=>{
+      socket.emit("send:message", {
+        event_id : navigation.state.params.eventId,
+        contactId : navigation.state.params.contactId,
+        user_id : navigation.state.params.userId,
+        message : messages[0].text,
+      });
+      this.setState(previousState => ({
+        messages: GiftedChat.append(previousState.messages, messages)
+      }));
+    })
   }
 
   onReceive(text) {
@@ -128,6 +171,7 @@ class ChatScreen extends Component {
 
   render() {
     const navigation = this.props.navigation;
+    const {messages} = this.state;
     return (
       <Container>
         <Header>
@@ -138,7 +182,7 @@ class ChatScreen extends Component {
           </Left>
           <Body>
             <Title>
-              {navigation.state.params.name}
+              {navigation.state.params.eventName}
             </Title>
           </Body>
           <Right />
@@ -149,7 +193,7 @@ class ChatScreen extends Component {
           contentContainerStyle={styles.contentChatView}
         >
           <GiftedChat
-            messages={this.state.messages}
+            messages={messages}
             onSend={this.onSend}
             loadEarlier={this.state.loadEarlier}
             onLoadEarlier={this.onLoadEarlier}

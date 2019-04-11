@@ -44,9 +44,13 @@ class Home extends Component {
     })
   }
 
+  handlePress = (id) => {
+    console.log(id)
+  }
+
   _renderActivity = (dataRow) => {
     return (
-      <Card key={dataRow._id} onPress={()=>this.setState({selected_event: dataRow._id})}>
+      <Card key={dataRow._id} onPress={()=>this.setState({selected_event: dataRow._id})} onPress={this.handlePress(dataRow._id)}>
         <CardItem>
           <Left>
             <Body>
@@ -67,7 +71,7 @@ class Home extends Component {
         </CardItem>
         <CardItem content bordered style={{ paddingTop: -10 }}>
           <Text style={styles.postContentText}>
-            {dataRow.description}
+            {dataRow.description.slice(0, 200) + ' ...'}
           </Text>
         </CardItem>
         <CardItem style={{ paddingLeft: 30, paddingRight: 30 }}>

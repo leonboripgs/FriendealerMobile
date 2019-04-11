@@ -1,6 +1,7 @@
 import { GiftedChat } from "react-native-gifted-chat";
 import React, { Component } from "react";
 import { Text, View, Image } from "react-native";
+import { connect } from "react-redux";
 import {
   Container,
   Content,
@@ -16,14 +17,17 @@ import {
   ListItem
 } from "native-base";
 import { NavigationActions } from "react-navigation";
-import data from "./data";
 import styles from "./styles";
+import api from '../../ApiConfig.js';
+import TimeAgo from 'react-native-timeago';
 
 const chatContactsImg = require("../../../assets/chatcontacts.png");
-const navigateAction = name =>
+const navigateAction = (dataRow, userId) =>
   NavigationActions.navigate({
     routeName: "ChatScreen",
-    params: { name: name }
+    params: { eventId: dataRow.event_id, contactId: dataRow.contact_id,
+       contactName: dataRow.name, eventName: dataRow.event_name, userId: userId,
+      contactAvatar: dataRow.avatar }
   });
 
 class Chat extends Component {
@@ -36,7 +40,8 @@ class Chat extends Component {
       currentChat: "",
       loadEarlier: true,
       typingText: "",
-      tab: "chat"
+      tab: "chat",
+      contactData: [],
     };
     this._isMounted = false;
     this.onSend = this.onSend.bind(this);
@@ -48,9 +53,11 @@ class Chat extends Component {
 
   componentWillMount() {
     this._isMounted = true;
-    this.setState({
-      messages: require("./messages")
-    });
+    if (this.props.user.user_id) { 
+      api.post('/chat/getContactByUserId', {user_id: this.props.user.user_id}).then((res)=>{
+        this.setState({contactData: res.data.doc})
+      })
+    }
   }
 
   componentWillUnmount() {
@@ -87,7 +94,7 @@ class Chat extends Component {
       messages: GiftedChat.append(previousState.messages, {
         _id: Math.round(Math.random() * 1000000),
         text,
-        createdAt: new Date(),
+        createdAt: Date.now(),
         user: {
           _id: 2,
           name: "React Native"
@@ -148,6 +155,7 @@ class Chat extends Component {
 
   render() {
     const navigation = this.props.navigation;
+    const {contactData} = this.state;
     return (
       <Container>
         <Header>
@@ -172,33 +180,35 @@ class Chat extends Component {
         <Content style={styles.content}>
           <List
             removeClippedSubviews={false}
-            dataArray={data}
-            renderRow={dataRow =>
-              <ListItem
-                onPress={() =>
-                  navigation.dispatch(navigateAction(dataRow.name))}
-                button
-                thumbnail
-              >
-                <Left>
-                  <Thumbnail round source={dataRow.thumbnail} />
-                </Left>
-                <Body>
-                  <Text style={styles.userNameText}>
-                    {dataRow.name}
-                  </Text>
-                  <Text style={styles.messageText}>
-                    {dataRow.message}
-                  </Text>
-                </Body>
-                <Right
-                  style={{ flexDirection: "row", alignItems: "flex-start" }}
+            dataArray={contactData}
+            renderRow={dataRow =>{
+              return (
+                <ListItem
+                  onPress={() =>
+                    navigation.dispatch(navigateAction(dataRow, this.props.user.user_id))}
+                  button
+                  thumbnail
                 >
-                  <Text style={styles.timeText}>
-                    {dataRow.time}
-                  </Text>
-                </Right>
-              </ListItem>}
+                  <Left>
+                    <Thumbnail round source={{uri: dataRow.avatar}} />
+                  </Left>
+                  <Body>
+                    <Text style={styles.userNameText}>
+                      {dataRow.name}
+                    </Text>
+                    <Text style={styles.messageText}>
+                      {dataRow.event_name}
+                    </Text>
+                  </Body>
+                  <Right
+                    style={{ flexDirection: "row", alignItems: "flex-start" }}
+                  >
+                    <Text style={styles.timeText}>
+                      <TimeAgo time={dataRow.lastMessageTime} />
+                    </Text>
+                  </Right>
+                </ListItem>
+              )}}
           />
         </Content>
       </Container>
@@ -206,4 +216,7 @@ class Chat extends Component {
   }
 }
 
-export default Chat;
+const mapStateToProps = state => ({
+  user: state.userReducer.user
+});
+export default connect(mapStateToProps)(Chat);

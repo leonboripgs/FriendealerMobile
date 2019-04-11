@@ -16,6 +16,7 @@ import { Field, reduxForm } from "redux-form";
 import { setUserToken } from "../../actions";
 import styles from "./styles";
 import api from '../../ApiConfig.js';
+import socket from '../../SocketConfig.js';
 
 const commonColor = require("../../theme/variables/commonColor");
 const logo = require("../../../assets/logo.png");
@@ -107,6 +108,7 @@ class LoginForm extends Component {
       }).then(response => {
         if (response.data.decodedToken) {
           this.props.setUserToken(response.data.decodedToken);
+          socket.emit('login', response.data.decodedToken);
           this.props.navigation.navigate("Drawer");
         }
       }).catch(error => {
