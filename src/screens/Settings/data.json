@@ -1,7 +1,7 @@
 [
   {
     "id": 0,
-    "name": "Notifications",
+    "name": "PostEvent",
     "icon": "md-calendar",
     "bg": "#ffc890",
     "url": "Home"

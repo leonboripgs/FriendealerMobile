@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { Image, StatusBar, Platform } from "react-native";
+import { Image, StatusBar, Platform, AsyncStorage } from "react-native";
 import {
   Container,
   Content,
@@ -51,6 +51,28 @@ class LoginForm extends Component {
     email: "admin@admin.com",
     password: "123456"
   };
+
+  componentDidMount = async() => {
+    var access_token;
+    await AsyncStorage.getItem('accessToken').then((response)=>{
+      if(response) {
+        access_token = JSON.parse(response);
+        api.get('/auth/access-token/' + access_token).then(response => {
+          if (response.status == 201) {
+            this.props.setUserToken(response.data.decodedToken);
+            AsyncStorage.setItem("accessToken", JSON.stringify(response.data.access_token));
+            this.props.navigation.navigate("Drawer");
+          }
+          else {
+            this.props.setUserToken(null);
+            AsyncStorage.setItem("accessToken", null);
+          }
+        })
+      }
+    }).catch(error => {
+      console.log(error);
+    }).done();
+  }
 
   handleChangeEmail(value) {
     this.setState({email: value})
@@ -109,9 +131,11 @@ class LoginForm extends Component {
         if (response.data.decodedToken) {
           this.props.setUserToken(response.data.decodedToken);
           socket.emit('login', response.data.decodedToken);
+          AsyncStorage.setItem("accessToken", JSON.stringify(response.data.access_token));
           this.props.navigation.navigate("Drawer");
         }
       }).catch(error => {
+        console.log(error)
         Toast.show({
           text: "Incorrect Username or Password provided!",
           duration: 2500,

@@ -44,16 +44,12 @@ class Chat extends Component {
       contactData: [],
     };
     this._isMounted = false;
-    this.onSend = this.onSend.bind(this);
-    this.onReceive = this.onReceive.bind(this);
-    this.onLoadEarlier = this.onLoadEarlier.bind(this);
-    this.renderFooter = this.renderFooter.bind(this);
     this._isAlright = null;
   }
 
   componentWillMount() {
     this._isMounted = true;
-    if (this.props.user.user_id) { 
+    if (this.props.user.user_id && this._isMounted) { 
       api.post('/chat/getContactByUserId', {user_id: this.props.user.user_id}).then((res)=>{
         this.setState({contactData: res.data.doc})
       })
@@ -64,98 +60,10 @@ class Chat extends Component {
     this._isMounted = false;
   }
 
-  onLoadEarlier() {
-    this.setState(previousState => ({
-      isLoadingEarlier: true
-    }));
-
-    setTimeout(() => {
-      if (this._isMounted === true) {
-        this.setState(previousState => ({
-          messages: GiftedChat.prepend(
-            previousState.messages,
-            require("./oldmessages")
-          ),
-          loadEarlier: false,
-          isLoadingEarlier: false
-        }));
-      }
-    }, 1000); // simulating network
-  }
-
-  onSend(messages = []) {
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, messages)
-    }));
-  }
-
-  onReceive(text) {
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, {
-        _id: Math.round(Math.random() * 1000000),
-        text,
-        createdAt: Date.now(),
-        user: {
-          _id: 2,
-          name: "React Native"
-          // avatar: 'https://facebook.github.io/react/img/logo_og.png',
-        }
-      })
-    }));
-  }
-
-  answerDemo(messages) {
-    if (messages.length > 0) {
-      if (messages[0].image || messages[0].location || !this._isAlright) {
-        this.setState(previousState => ({
-          typingText: "React Native is typing"
-        }));
-      }
-    }
-
-    setTimeout(() => {
-      if (this._isMounted === true) {
-        if (messages.length > 0) {
-          if (messages[0].image) {
-            this.onReceive("Nice picture!");
-          } else if (messages[0].location) {
-            this.onReceive("My favorite place");
-          } else if (!this._isAlright) {
-            this._isAlright = true;
-            this.onReceive("Alright");
-          }
-        }
-      }
-
-      this.setState(previousState => ({
-        typingText: ""
-      }));
-    }, 1000);
-  }
-
-  _toggleRenderChat(personName) {
-    this.setState({
-      showChat: !this.state.showChat,
-      currentChat: personName
-    });
-  }
-
-  renderFooter(props) {
-    if (this.state.typingText !== "") {
-      return (
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>
-            {this.state.typingText}
-          </Text>
-        </View>
-      );
-    }
-    return null;
-  }
-
   render() {
     const navigation = this.props.navigation;
     const {contactData} = this.state;
+    contactData.sort(function(a,b){return (a.lastMessageTime - b.lastMessageTime)})
     return (
       <Container>
         <Header>
@@ -197,7 +105,7 @@ class Chat extends Component {
                       {dataRow.name}
                     </Text>
                     <Text style={styles.messageText}>
-                      {dataRow.event_name}
+                      {dataRow.mood}
                     </Text>
                   </Body>
                   <Right

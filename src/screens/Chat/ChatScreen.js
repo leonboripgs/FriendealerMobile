@@ -44,17 +44,32 @@ class ChatScreen extends Component {
       .then((res)=>{
       var dialog = [];
       res.data.doc.dialog.map((cursor)=>{
-        dialog.push({
-          _id: Math.round(Math.random() * 1000000),
-          text: cursor.message,
-          createdAt: cursor.time,
-          user: {
-            _id: (navigation.state.params.userId === cursor.who ? 1 : 2),
-            name: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactName),
-            avatar: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactAvatar),
-          }        
-        })
+        if (cursor.message_type === 'image') {
+          dialog.push({
+            _id: Math.round(Math.random() * 1000000),
+            image: cursor.message,
+            createdAt: cursor.time,
+            user: {
+              _id: (navigation.state.params.userId === cursor.who ? 1 : 2),
+              name: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactName),
+              avatar: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactAvatar),
+            }        
+          })
+        }
+        else {
+          dialog.push({
+            _id: Math.round(Math.random() * 1000000),
+            text: cursor.message,
+            createdAt: cursor.time,
+            user: {
+              _id: (navigation.state.params.userId === cursor.who ? 1 : 2),
+              name: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactName),
+              avatar: (navigation.state.params.userId === cursor.who ? '' : navigation.state.params.contactAvatar),
+            }        
+          })  
+        }
       })
+      dialog.reverse();
       this.setState({
         messages: dialog
       })
@@ -65,6 +80,17 @@ class ChatScreen extends Component {
     this._isMounted = false;
   }
 
+  componentDidMount() {
+    const navigation = this.props.navigation;
+    socket.on("receive:message", data => {
+      console.log(data);
+      if (navigation.state.params.contactId === data.contactId && 
+        navigation.state.params.eventId === data.event_id) {
+          this.onReceive(data.message, data.message_type);
+      }
+    });
+  }
+
   onLoadEarlier() {
     this.setState(previousState => ({
       isLoadingEarlier: true
@@ -73,10 +99,6 @@ class ChatScreen extends Component {
     setTimeout(() => {
       if (this._isMounted === true) {
         this.setState(previousState => ({
-          messages: GiftedChat.prepend(
-            previousState.messages,
-            require("./oldmessages")
-          ),
           loadEarlier: false,
           isLoadingEarlier: false
         }));
@@ -105,6 +127,7 @@ class ChatScreen extends Component {
         contactId : navigation.state.params.contactId,
         user_id : navigation.state.params.userId,
         message : messages[0].text,
+        message_type: 'text'
       });
       this.setState(previousState => ({
         messages: GiftedChat.append(previousState.messages, messages)
@@ -112,19 +135,37 @@ class ChatScreen extends Component {
     })
   }
 
-  onReceive(text) {
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, {
-        _id: Math.round(Math.random() * 1000000),
-        text,
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "React Native"
-          // avatar: 'https://facebook.github.io/react/img/logo_og.png',
-        }
-      })
-    }));
+  onReceive(text, type) {
+    const navigation = this.props.navigation;
+    console.log(text, type);
+    if (type === 'image') {
+      this.setState(previousState => ({
+        messages: GiftedChat.append(previousState.messages, {
+          _id: Math.round(Math.random() * 1000000),
+          image: text,
+          createdAt: new Date(),
+          user: {
+            _id: 2,
+            name: navigation.state.params.contactName,
+            avatar: navigation.state.params.contactAvatar,
+          }
+        })
+      }));
+    }
+    else {
+      this.setState(previousState => ({
+        messages: GiftedChat.append(previousState.messages, {
+          _id: Math.round(Math.random() * 1000000),
+          text: text,
+          createdAt: new Date(),
+          user: {
+            _id: 2,
+            name: navigation.state.params.contactName,
+            avatar: navigation.state.params.contactAvatar,
+          }
+        })
+      }));
+    }
   }
 
   answerDemo(messages) {
@@ -171,7 +212,7 @@ class ChatScreen extends Component {
 
   render() {
     const navigation = this.props.navigation;
-    const {messages} = this.state;
+    const {messages, loadEarlier} = this.state;
     return (
       <Container>
         <Header>
@@ -182,7 +223,7 @@ class ChatScreen extends Component {
           </Left>
           <Body>
             <Title>
-              {navigation.state.params.eventName}
+              {navigation.state.params.contactName}
             </Title>
           </Body>
           <Right />
@@ -193,7 +234,7 @@ class ChatScreen extends Component {
           contentContainerStyle={styles.contentChatView}
         >
           <GiftedChat
-            messages={messages}
+            messages={loadEarlier === false ? messages : messages.slice(0, 50)}
             onSend={this.onSend}
             loadEarlier={this.state.loadEarlier}
             onLoadEarlier={this.onLoadEarlier}

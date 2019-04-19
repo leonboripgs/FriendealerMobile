@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Icon, Footer, FooterTab, Badge, Text } from "native-base";
 import Friends from "../Friends";
 import Home from "./index";
-import Notifications from "../Notifications";
+import PostEvent from "../PostEvent";
 import Chat from "../Chat";
 import Settings from "../Settings";
 import { createBottomTabNavigator } from "react-navigation";
@@ -13,7 +13,7 @@ const HomeTabNavigation = createBottomTabNavigator(
     Home: { screen: Home },
     Friends: { screen: Friends },
     Chat: { screen: Chat },
-    Notifications: { screen: Notifications },
+    PostEvent: { screen: PostEvent },
     Settings: { screen: Settings }
   },
   {
@@ -68,7 +68,7 @@ const HomeTabNavigation = createBottomTabNavigator(
             <Button
               badge
               vertical
-              onPress={() => props.navigation.navigate("Notifications")}
+              onPress={() => props.navigation.navigate("PostEvent")}
             >
               <Badge>
                 <Text>4</Text>

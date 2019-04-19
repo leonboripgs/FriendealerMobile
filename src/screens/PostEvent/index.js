@@ -14,12 +14,11 @@ import {
   List,
   ListItem
 } from "native-base";
-import data from "./data";
 import styles from "./styles";
 
 const chatContactsImg = require("../../../assets/chatcontacts.png");
 
-class Notifications extends Component {
+class PostEvent extends Component {
   render() {
     const navigation = this.props.navigation;
     return (
@@ -31,7 +30,7 @@ class Notifications extends Component {
             </Button>
           </Left>
           <Body>
-            <Title>Notifications</Title>
+            <Title>Post an Activity</Title>
           </Body>
           <Right>
             <Button
@@ -44,36 +43,11 @@ class Notifications extends Component {
         </Header>
 
         <Content style={styles.content}>
-          <List
-            removeClippedSubviews={false}
-            dataArray={data}
-            renderRow={dataRow =>
-              <ListItem
-                button
-                thumbnail
-                style={{
-                  ...styles.listItem,
-                  ...{ backgroundColor: dataRow.bg }
-                }}
-              >
-                <Left>
-                  <Thumbnail square source={dataRow.thumbnail} />
-                </Left>
-                <Body>
-                  <Text style={styles.nameText}>
-                    {dataRow.post}
-                  </Text>
-                  <Text style={styles.timeText}>
-                    {dataRow.time}
-                  </Text>
-                </Body>
-                <Right />
-              </ListItem>}
-          />
+
         </Content>
       </Container>
     );
   }
 }
 
-export default Notifications;
+export default PostEvent;
